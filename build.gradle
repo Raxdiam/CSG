@@ -22,7 +22,7 @@ apply plugin: 'net.minecraftforge.gradle'
 group = "com.brandon3055.csg"
 archivesBaseName = "CustomStartingGear"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 //Add generated resources to main resources.
 //sourceSets.main.resources.srcDirs += "src/generated/resources"
