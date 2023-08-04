@@ -1,0 +1,55 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [test]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Build with Gradle
+      uses: gradle/gradle-build-action@bd5760595778326ba7f1441bcf7e88b49de61a25 # v2.6.0
+      with:
+        arguments: build
+
+    - name: Get version from properties file
+      id: get_version
+      run: echo ::set-output name=VERSION::$(grep 'mod_version' build.properties | cut -d'=' -f2)
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+      with:
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Assets
+      run: |
+        for file in build/libs/*.jar
+        do
+          echo "Uploading $file"
+          curl --fail \
+            -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: $(file -b --mime-type $file)" \
+            --data-binary @"$file" \
+            "${{ steps.create_release.outputs.upload_url }}/assets?name=$(basename $file)"
+        done
+
+
+
+
+      
